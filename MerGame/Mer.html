@@ -1,0 +1,856 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Городской Мэр: Симулятор Управления</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        .pulse-animation {
+            animation: pulse 2s infinite;
+        }
+        .progress-bar {
+            transition: width 0.5s ease-in-out;
+        }
+        .decision-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+        }
+        .city-animation {
+            background: linear-gradient(90deg, #f0f9ff, #e0f2fe, #bae6fd);
+            background-size: 200% 200%;
+            animation: gradientBG 8s ease infinite;
+        }
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        .special-btn {
+            transition: all 0.3s ease;
+        }
+        .special-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+    </style>
+</head>
+<body class="bg-gray-100 font-sans">
+    <div class="min-h-screen flex flex-col">
+        <!-- Header -->
+        <header class="bg-blue-800 text-white shadow-lg">
+            <div class="container mx-auto px-4 py-6">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <h1 class="text-3xl font-bold"><i class="fas fa-landmark mr-2"></i>Городской Мэр</h1>
+                        <p class="text-blue-200">Симулятор управления городом</p>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <div class="bg-blue-700 px-4 py-2 rounded-lg">
+                            <span class="font-semibold">День: </span>
+                            <span id="day-counter">1</span>
+                        </div>
+                        <div class="bg-blue-700 px-4 py-2 rounded-lg">
+                            <span class="font-semibold">Рейтинг: </span>
+                            <span id="rating">50</span>%
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="flex-grow container mx-auto px-4 py-8">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <!-- City Stats -->
+                <div class="lg:col-span-1 bg-white rounded-xl shadow-lg p-6 h-fit">
+                    <h2 class="text-2xl font-bold text-blue-800 mb-6 flex items-center">
+                        <i class="fas fa-chart-line mr-2"></i>Статистика города
+                    </h2>
+
+                    <div class="space-y-6">
+                        <div>
+                            <div class="flex justify-between mb-1">
+                                <span class="font-medium">Бюджет</span>
+                                <span id="budget-value" class="font-bold">10,000,000 ₽</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-4">
+                                <div id="budget-bar" class="progress-bar bg-green-500 h-4 rounded-full" style="width: 70%"></div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <div class="flex justify-between mb-1">
+                                <span class="font-medium">Удовлетворённость</span>
+                                <span id="happiness-value" class="font-bold">65%</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-4">
+                                <div id="happiness-bar" class="progress-bar bg-yellow-500 h-4 rounded-full" style="width: 65%"></div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <div class="flex justify-between mb-1">
+                                <span class="font-medium">Экология</span>
+                                <span id="ecology-value" class="font-bold">45%</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-4">
+                                <div id="ecology-bar" class="progress-bar bg-teal-500 h-4 rounded-full" style="width: 45%"></div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <div class="flex justify-between mb-1">
+                                <span class="font-medium">Безопасность</span>
+                                <span id="safety-value" class="font-bold">80%</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-4">
+                                <div id="safety-bar" class="progress-bar bg-blue-500 h-4 rounded-full" style="width: 80%"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Special Actions -->
+                    <div class="mt-8 pt-6 border-t border-gray-200">
+                        <h3 class="font-bold text-lg mb-3 flex items-center">
+                            <i class="fas fa-user-secret mr-2"></i>Специальные действия
+                        </h3>
+                        <div class="grid grid-cols-2 gap-2">
+                            <button id="sauna-btn" class="special-btn bg-amber-600 text-white p-2 rounded flex items-center justify-center">
+                                <i class="fas fa-hot-tub mr-1"></i> Баня
+                            </button>
+                            <button id="secretary-btn" class="special-btn bg-pink-500 text-white p-2 rounded flex items-center justify-center">
+                                <i class="fas fa-female mr-1"></i> Секретарша
+                            </button>
+                            <button id="escort-btn" class="special-btn bg-purple-600 text-white p-2 rounded flex items-center justify-center">
+                                <i class="fas fa-venus-mars mr-1"></i> Вызов
+                            </button>
+                            <button id="close-cases-btn" class="special-btn bg-green-600 text-white p-2 rounded flex items-center justify-center">
+                                <i class="fas fa-folder mr-1"></i> Закрыть дела
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="mt-8 pt-6 border-t border-gray-200">
+                        <h3 class="font-bold text-lg mb-3">Последние события</h3>
+                        <div id="event-log" class="space-y-2 max-h-40 overflow-y-auto text-sm">
+                            <div class="p-2 bg-blue-50 rounded">Вы вступили в должность мэра!</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- City View -->
+                <div class="lg:col-span-2">
+                    <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+                        <div class="city-animation p-6 bg-gradient-to-r from-blue-50 to-cyan-100">
+                            <div class="flex justify-between items-center mb-4">
+                                <h2 class="text-2xl font-bold text-blue-800">
+                                    <i class="fas fa-city mr-2"></i>Город "Солнечный"
+                                </h2>
+                                <div class="bg-white px-3 py-1 rounded-full shadow">
+                                    <span id="population" class="font-bold">125,000</span> жителей
+                                </div>
+                            </div>
+
+                            <div class="relative h-64 bg-blue-100 rounded-lg overflow-hidden mb-6">
+                                <div id="city-visual" class="absolute inset-0 flex items-center justify-center">
+                                    <div class="text-center">
+                                        <i class="fas fa-city text-6xl text-blue-400 mb-2"></i>
+                                        <p class="text-blue-800 font-medium">Ваш город ждёт решений!</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div id="current-situation" class="bg-white p-4 rounded-lg shadow-inner mb-6">
+                                <h3 class="font-bold text-lg mb-2 flex items-center">
+                                    <i class="fas fa-exclamation-circle text-yellow-500 mr-2"></i>
+                                    Текущая ситуация
+                                </h3>
+                                <p id="situation-text">Жители жалуются на плохое состояние дорог и просят увеличить финансирование ремонта.</p>
+                            </div>
+                        </div>
+
+                        <!-- Decisions -->
+                        <div class="p-6">
+                            <h2 class="text-2xl font-bold text-blue-800 mb-6">
+                                <i class="fas fa-tasks mr-2"></i>Примите решение
+                            </h2>
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="decisions-container">
+                                <!-- Decisions will be inserted here by JavaScript -->
+                            </div>
+
+                            <div class="mt-8 flex justify-center">
+                                <button id="next-day-btn" class="px-8 py-3 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 transition duration-300 flex items-center pulse-animation">
+                                    <i class="fas fa-forward mr-2"></i> Следующий день
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <footer class="bg-gray-800 text-white py-6">
+            <div class="container mx-auto px-4 text-center">
+                <p>© 2023 Городской Мэр - Симулятор управления городом</p>
+                <p class="text-gray-400 text-sm mt-2">Принимайте мудрые решения и ведите город к процветанию!</p>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Game Over Modal -->
+    <div id="game-over-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+        <div class="bg-white rounded-xl p-8 max-w-md w-full mx-4">
+            <div class="text-center">
+                <i class="fas fa-trophy text-6xl text-yellow-500 mb-4"></i>
+                <h2 class="text-3xl font-bold text-gray-800 mb-2" id="game-over-title">Поздравляем!</h2>
+                <p class="text-gray-600 mb-6" id="game-over-message">Вы успешно управляли городом в течение 30 дней!</p>
+                <div class="flex justify-center space-x-4">
+                    <button id="restart-btn" class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">Играть снова</button>
+                    <button id="close-modal-btn" class="px-6 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition">Закрыть</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Special Action Modals -->
+    <div id="sauna-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+        <div class="bg-white rounded-xl p-6 max-w-md w-full mx-4">
+            <div class="text-center">
+                <i class="fas fa-hot-tub text-5xl text-amber-600 mb-4"></i>
+                <h3 class="text-2xl font-bold mb-2">Посещение бани</h3>
+                <p class="mb-4">Вы решили отдохнуть в бане с друзьями. Это улучшит ваше настроение, но может повлиять на репутацию.</p>
+                <div class="flex justify-center space-x-4">
+                    <button id="confirm-sauna" class="px-4 py-2 bg-amber-600 text-white rounded-lg">Посетить (500,000 ₽)</button>
+                    <button id="cancel-sauna" class="px-4 py-2 bg-gray-200 rounded-lg">Отмена</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="secretary-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+        <div class="bg-white rounded-xl p-6 max-w-md w-full mx-4">
+            <div class="text-center">
+                <i class="fas fa-female text-5xl text-pink-500 mb-4"></i>
+                <h3 class="text-2xl font-bold mb-2">Вызов секретарши</h3>
+                <p class="mb-4">Ваша секретарша готова помочь с "бумажной работой". Это повысит ваше настроение, но может стоить репутации.</p>
+                <div class="flex justify-center space-x-4">
+                    <button id="confirm-secretary" class="px-4 py-2 bg-pink-500 text-white rounded-lg">Вызвать (300,000 ₽)</button>
+                    <button id="cancel-secretary" class="px-4 py-2 bg-gray-200 rounded-lg">Отмена</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="escort-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+        <div class="bg-white rounded-xl p-6 max-w-md w-full mx-4">
+            <div class="text-center">
+                <i class="fas fa-venus-mars text-5xl text-purple-600 mb-4"></i>
+                <h3 class="text-2xl font-bold mb-2">Вызов эскорт-услуг</h3>
+                <p class="mb-4">Элитное агентство предоставит вам компанию на вечер. Это дорого и рискованно для репутации.</p>
+                <div class="flex justify-center space-x-4">
+                    <button id="confirm-escort" class="px-4 py-2 bg-purple-600 text-white rounded-lg">Вызвать (1,000,000 ₽)</button>
+                    <button id="cancel-escort" class="px-4 py-2 bg-gray-200 rounded-lg">Отмена</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="close-cases-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+        <div class="bg-white rounded-xl p-6 max-w-md w-full mx-4">
+            <div class="text-center">
+                <i class="fas fa-folder text-5xl text-green-600 mb-4"></i>
+                <h3 class="text-2xl font-bold mb-2">Закрыть все дела</h3>
+                <p class="mb-4">Используя свои связи, вы можете "закрыть" все текущие проблемы. Это дорого и не всегда этично.</p>
+                <div class="flex justify-center space-x-4">
+                    <button id="confirm-close-cases" class="px-4 py-2 bg-green-600 text-white rounded-lg">Закрыть (2,000,000 ₽)</button>
+                    <button id="cancel-close-cases" class="px-4 py-2 bg-gray-200 rounded-lg">Отмена</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Game State
+        const gameState = {
+            day: 1,
+            rating: 50,
+            budget: 10000000,
+            happiness: 65,
+            ecology: 45,
+            safety: 80,
+            population: 125000,
+            gameOver: false,
+            corruption: 0 // Скрытый параметр коррупции
+        };
+
+        // Decisions database
+        const decisions = [
+            {
+                id: 1,
+                title: "Ремонт дорог",
+                description: "Выделить 2 млн ₽ на ремонт основных магистралей города",
+                cost: 2000000,
+                effects: {
+                    happiness: 15,
+                    ecology: -5,
+                    safety: 5,
+                    budget: -2000000
+                },
+                message: "Жители довольны улучшением дорожного покрытия, хотя экологи жалуются на увеличение выбросов от строительной техники."
+            },
+            {
+                id: 2,
+                title: "Парковая зона",
+                description: "Создать новый парк в центре города стоимостью 1.5 млн ₽",
+                cost: 1500000,
+                effects: {
+                    happiness: 10,
+                    ecology: 20,
+                    safety: 0,
+                    budget: -1500000
+                },
+                message: "Новый парк стал любимым местом отдыха горожан и улучшил экологическую обстановку."
+            },
+            {
+                id: 3,
+                title: "Налоговая реформа",
+                description: "Увеличить налоги на бизнес на 3% для пополнения бюджета",
+                cost: 0,
+                effects: {
+                    happiness: -10,
+                    ecology: 0,
+                    safety: 0,
+                    budget: 3000000
+                },
+                message: "Бюджет пополнился, но местные предприниматели выражают недовольство."
+            },
+            {
+                id: 4,
+                title: "Полицейская программа",
+                description: "Нанять 20 новых полицейских и закупить оборудование за 1 млн ₽",
+                cost: 1000000,
+                effects: {
+                    happiness: 5,
+                    ecology: 0,
+                    safety: 15,
+                    budget: -1000000
+                },
+                message: "Уровень преступности снизился благодаря усиленному патрулированию."
+            },
+            {
+                id: 5,
+                title: "Экологическая инициатива",
+                description: "Установить солнечные панели на муниципальных зданиях за 3 млн ₽",
+                cost: 3000000,
+                effects: {
+                    happiness: 5,
+                    ecology: 25,
+                    safety: 0,
+                    budget: -3000000
+                },
+                message: "Город делает первые шаги к зелёной энергетике, что положительно оценили экологи."
+            },
+            {
+                id: 6,
+                title: "Фестиваль города",
+                description: "Организовать городской фестиваль за 500 тыс ₽",
+                cost: 500000,
+                effects: {
+                    happiness: 20,
+                    ecology: -5,
+                    safety: -5,
+                    budget: -500000
+                },
+                message: "Фестиваль прошёл с успехом, жители веселились, хотя после него пришлось убирать мусор."
+            },
+            {
+                id: 7,
+                title: "Социальная помощь",
+                description: "Увеличить выплаты малоимущим на 1 млн ₽",
+                cost: 1000000,
+                effects: {
+                    happiness: 15,
+                    ecology: 0,
+                    safety: 5,
+                    budget: -1000000
+                },
+                message: "Социально незащищённые слои населения выразили благодарность за поддержку."
+            },
+            {
+                id: 8,
+                title: "Сокращение расходов",
+                description: "Сократить финансирование культурных программ на 800 тыс ₽",
+                cost: 0,
+                effects: {
+                    happiness: -15,
+                    ecology: 0,
+                    safety: 0,
+                    budget: 800000
+                },
+                message: "Экономия бюджета достигнута, но творческая интеллигенция возмущена."
+            }
+        ];
+
+        // Situations database
+        const situations = [
+            "Жители жалуются на плохое состояние дорог и просят увеличить финансирование ремонта.",
+            "Экологи бьют тревогу - уровень загрязнения воздуха превышает норму.",
+            "Участились случаи краж и грабежей, горожане требуют усилить полицейское присутствие.",
+            "Местные предприниматели просят снизить налоговую нагрузку для стимулирования бизнеса.",
+            "В городе наблюдается рост безработицы, особенно среди молодёжи.",
+            "Школьные учителя требуют повышения зарплат и улучшения условий работы.",
+            "Врачи городской больницы жалуются на нехватку оборудования и перегруженность.",
+            "Спортивные клубы просят поддержки в организации городских соревнований."
+        ];
+
+        // DOM Elements
+        const dayCounter = document.getElementById('day-counter');
+        const ratingElement = document.getElementById('rating');
+        const budgetValue = document.getElementById('budget-value');
+        const happinessValue = document.getElementById('happiness-value');
+        const ecologyValue = document.getElementById('ecology-value');
+        const safetyValue = document.getElementById('safety-value');
+        const populationElement = document.getElementById('population');
+        const situationText = document.getElementById('situation-text');
+        const decisionsContainer = document.getElementById('decisions-container');
+        const nextDayBtn = document.getElementById('next-day-btn');
+        const eventLog = document.getElementById('event-log');
+        const gameOverModal = document.getElementById('game-over-modal');
+        const gameOverTitle = document.getElementById('game-over-title');
+        const gameOverMessage = document.getElementById('game-over-message');
+        const restartBtn = document.getElementById('restart-btn');
+        const closeModalBtn = document.getElementById('close-modal-btn');
+
+        // Special action buttons
+        const saunaBtn = document.getElementById('sauna-btn');
+        const secretaryBtn = document.getElementById('secretary-btn');
+        const escortBtn = document.getElementById('escort-btn');
+        const closeCasesBtn = document.getElementById('close-cases-btn');
+
+        // Special action modals
+        const saunaModal = document.getElementById('sauna-modal');
+        const secretaryModal = document.getElementById('secretary-modal');
+        const escortModal = document.getElementById('escort-modal');
+        const closeCasesModal = document.getElementById('close-cases-modal');
+
+        // Progress bars
+        const budgetBar = document.getElementById('budget-bar');
+        const happinessBar = document.getElementById('happiness-bar');
+        const ecologyBar = document.getElementById('ecology-bar');
+        const safetyBar = document.getElementById('safety-bar');
+
+        // City visual elements
+        const cityVisual = document.getElementById('city-visual');
+
+        // Format number with spaces
+        function formatNumber(num) {
+            return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+        }
+
+        // Update all UI elements
+        function updateUI() {
+            dayCounter.textContent = gameState.day;
+            ratingElement.textContent = gameState.rating;
+            budgetValue.textContent = formatNumber(gameState.budget) + ' ₽';
+            happinessValue.textContent = gameState.happiness + '%';
+            ecologyValue.textContent = gameState.ecology + '%';
+            safetyValue.textContent = gameState.safety + '%';
+            populationElement.textContent = formatNumber(gameState.population);
+
+            // Update progress bars
+            budgetBar.style.width = Math.min(100, gameState.budget / 1000000) + '%';
+            happinessBar.style.width = gameState.happiness + '%';
+            ecologyBar.style.width = gameState.ecology + '%';
+            safetyBar.style.width = gameState.safety + '%';
+
+            // Update progress bar colors based on values
+            budgetBar.className = `progress-bar h-4 rounded-full ${gameState.budget > 5000000 ? 'bg-green-500' : gameState.budget > 2000000 ? 'bg-yellow-500' : 'bg-red-500'}`;
+            happinessBar.className = `progress-bar h-4 rounded-full ${gameState.happiness > 70 ? 'bg-green-500' : gameState.happiness > 40 ? 'bg-yellow-500' : 'bg-red-500'}`;
+            ecologyBar.className = `progress-bar h-4 rounded-full ${gameState.ecology > 60 ? 'bg-green-500' : gameState.ecology > 30 ? 'bg-yellow-500' : 'bg-red-500'}`;
+            safetyBar.className = `progress-bar h-4 rounded-full ${gameState.safety > 70 ? 'bg-green-500' : gameState.safety > 40 ? 'bg-yellow-500' : 'bg-red-500'}`;
+
+            // Update city visual based on rating
+            updateCityVisual();
+        }
+
+        // Update city visual based on rating
+        function updateCityVisual() {
+            let visualHTML = '';
+            let cityClass = '';
+
+            if (gameState.rating >= 80) {
+                visualHTML = `
+                    <div class="text-center">
+                        <i class="fas fa-star text-6xl text-yellow-400 mb-2"></i>
+                        <p class="text-green-800 font-medium">Город процветает под вашим руководством!</p>
+                    </div>
+                `;
+                cityClass = 'bg-gradient-to-r from-green-50 to-teal-100';
+            } else if (gameState.rating >= 50) {
+                visualHTML = `
+                    <div class="text-center">
+                        <i class="fas fa-city text-6xl text-blue-400 mb-2"></i>
+                        <p class="text-blue-800 font-medium">Город развивается, но есть куда расти.</p>
+                    </div>
+                `;
+                cityClass = 'bg-gradient-to-r from-blue-50 to-cyan-100';
+            } else {
+                visualHTML = `
+                    <div class="text-center">
+                        <i class="fas fa-exclamation-triangle text-6xl text-red-400 mb-2"></i>
+                        <p class="text-red-800 font-medium">Город в упадке, нужны срочные меры!</p>
+                    </div>
+                `;
+                cityClass = 'bg-gradient-to-r from-red-50 to-orange-100';
+            }
+
+            cityVisual.innerHTML = visualHTML;
+            cityVisual.parentElement.className = `relative h-64 ${cityClass} rounded-lg overflow-hidden mb-6`;
+        }
+
+        // Generate random decisions
+        function generateDecisions() {
+            decisionsContainer.innerHTML = '';
+
+            // Shuffle decisions and pick 4
+            const shuffled = [...decisions].sort(() => 0.5 - Math.random());
+            const selectedDecisions = shuffled.slice(0, 4);
+
+            selectedDecisions.forEach(decision => {
+                const canAfford = gameState.budget >= decision.cost;
+
+                const decisionCard = document.createElement('div');
+                decisionCard.className = `decision-card bg-white p-4 rounded-lg border border-gray-200 shadow-md transition duration-300 ${canAfford ? 'hover:border-blue-300 cursor-pointer' : 'opacity-60'}`;
+                decisionCard.innerHTML = `
+                    <h3 class="font-bold text-lg mb-2">${decision.title}</h3>
+                    <p class="text-gray-600 mb-3">${decision.description}</p>
+                    <div class="flex justify-between items-center">
+                        <span class="font-bold ${decision.cost > 0 ? 'text-red-500' : 'text-green-500'}">
+                            ${decision.cost > 0 ? '-' : '+'}${formatNumber(Math.abs(decision.cost))} ₽
+                        </span>
+                        <button class="px-3 py-1 bg-blue-600 text-white rounded text-sm ${!canAfford ? 'hidden' : ''}">
+                            Выбрать
+                        </button>
+                    </div>
+                `;
+
+                if (canAfford) {
+                    decisionCard.addEventListener('click', () => makeDecision(decision));
+                }
+
+                decisionsContainer.appendChild(decisionCard);
+            });
+
+            // Set random situation
+            situationText.textContent = situations[Math.floor(Math.random() * situations.length)];
+        }
+
+        // Make a decision
+        function makeDecision(decision) {
+            if (gameState.budget < decision.cost) return;
+
+            // Apply effects
+            gameState.budget += decision.effects.budget;
+            gameState.happiness = Math.max(0, Math.min(100, gameState.happiness + decision.effects.happiness));
+            gameState.ecology = Math.max(0, Math.min(100, gameState.ecology + decision.effects.ecology));
+            gameState.safety = Math.max(0, Math.min(100, gameState.safety + decision.effects.safety));
+
+            // Update rating (average of happiness, ecology and safety)
+            gameState.rating = Math.round((gameState.happiness + gameState.ecology + gameState.safety) / 3);
+
+            // Random population change based on rating
+            const popChange = Math.floor((gameState.rating - 50) / 5 * 100);
+            gameState.population = Math.max(50000, gameState.population + popChange);
+
+            // Add event to log
+            const eventElement = document.createElement('div');
+            eventElement.className = 'p-2 bg-blue-50 rounded';
+            eventElement.textContent = decision.message;
+            eventLog.insertBefore(eventElement, eventLog.firstChild);
+
+            // Keep log manageable
+            if (eventLog.children.length > 6) {
+                eventLog.removeChild(eventLog.lastChild);
+            }
+
+            updateUI();
+            generateDecisions();
+        }
+
+        // Next day
+        function nextDay() {
+            if (gameState.gameOver) return;
+
+            gameState.day++;
+
+            // Random events that can happen
+            if (Math.random() < 0.3) {
+                const randomEvents = [
+                    { message: "Произошёл небольшой экономический рост. Бюджет пополнился на 500 тыс ₽.", effect: () => gameState.budget += 500000 },
+                    { message: "Стихийное бедствие! Пришлось выделить 1 млн ₽ на ликвидацию последствий.", effect: () => gameState.budget -= 1000000 },
+                    { message: "Миграционный прирост. Население увеличилось на 2 тыс человек.", effect: () => gameState.population += 2000 },
+                    { message: "Эпидемия гриппа. Удовлетворённость жителей снизилась.", effect: () => gameState.happiness -= 10 },
+                    { message: "Успешная культурная программа повысила настроение горожан.", effect: () => gameState.happiness += 5 },
+                    { message: "Технологическая компания открыла филиал в городе, создав новые рабочие места.", effect: () => { gameState.budget += 750000; gameState.happiness += 5; }},
+                    { message: "Криминальная волна: за последние дни совершена серия краж.", effect: () => gameState.safety -= 8 },
+                    { message: "Скандал с коррупцией! Ваша репутация пострадала.", effect: () => { gameState.rating -= 5; gameState.corruption += 10; }}
+                ];
+
+                const randomEvent = randomEvents[Math.floor(Math.random() * randomEvents.length)];
+                randomEvent.effect();
+
+                const eventElement = document.createElement('div');
+                eventElement.className = 'p-2 bg-blue-50 rounded';
+                eventElement.innerHTML = `<i class="fas fa-bolt text-yellow-500 mr-1"></i> ${randomEvent.message}`;
+                eventLog.insertBefore(eventElement, eventLog.firstChild);
+
+                // Keep log manageable
+                if (eventLog.children.length > 6) {
+                    eventLog.removeChild(eventLog.lastChild);
+                }
+            }
+
+            // Small daily changes
+            gameState.budget -= 200000; // Daily expenses
+            gameState.happiness += Math.floor((Math.random() * 6) - 3); // -2 to +3
+            gameState.ecology += Math.floor((Math.random() * 4) - 2); // -1 to +2
+            gameState.safety += Math.floor((Math.random() * 4) - 2); // -1 to +2
+
+            // Corruption can lead to random negative events
+            if (gameState.corruption > 50 && Math.random() < 0.4) {
+                const corruptionEvents = [
+                    { message: "Утечка информации о ваших неофициальных доходах! Репутация ухудшилась.", effect: () => gameState.rating -= 10 },
+                    { message: "Журналисты раскопали компромат. Пришлось заплатить за молчание.", effect: () => { gameState.budget -= 1000000; gameState.rating -= 5; }},
+                    { message: "Прокуратура начала проверку вашей деятельности.", effect: () => gameState.rating -= 15 }
+                ];
+
+                const corruptionEvent = corruptionEvents[Math.floor(Math.random() * corruptionEvents.length)];
+                corruptionEvent.effect();
+
+                const eventElement = document.createElement('div');
+                eventElement.className = 'p-2 bg-red-100 rounded';
+                eventElement.innerHTML = `<i class="fas fa-gavel text-red-500 mr-1"></i> ${corruptionEvent.message}`;
+                eventLog.insertBefore(eventElement, eventLog.firstChild);
+
+                if (eventLog.children.length > 6) {
+                    eventLog.removeChild(eventLog.lastChild);
+                }
+            }
+
+            // Clamp values
+            gameState.happiness = Math.max(0, Math.min(100, gameState.happiness));
+            gameState.ecology = Math.max(0, Math.min(100, gameState.ecology));
+            gameState.safety = Math.max(0, Math.min(100, gameState.safety));
+            gameState.budget = Math.max(0, gameState.budget);
+
+            // Update rating
+            gameState.rating = Math.round((gameState.happiness + gameState.ecology + gameState.safety) / 3);
+
+            // Check for game over
+            if (gameState.rating <= 20 || gameState.day >= 30) {
+                endGame();
+                return;
+            }
+
+            updateUI();
+            generateDecisions();
+        }
+
+        // Special actions
+        function visitSauna() {
+            if (gameState.budget < 500000) {
+                alert("Недостаточно средств в бюджете!");
+                return;
+            }
+
+            gameState.budget -= 500000;
+            gameState.happiness = Math.min(100, gameState.happiness + 20);
+            gameState.corruption += 5;
+
+            const eventElement = document.createElement('div');
+            eventElement.className = 'p-2 bg-amber-50 rounded';
+            eventElement.innerHTML = `<i class="fas fa-hot-tub text-amber-600 mr-1"></i> Вы отлично провели время в бане с друзьями. Настроение улучшилось!`;
+            eventLog.insertBefore(eventElement, eventLog.firstChild);
+
+            if (eventLog.children.length > 6) {
+                eventLog.removeChild(eventLog.lastChild);
+            }
+
+            updateUI();
+        }
+
+        function callSecretary() {
+            if (gameState.budget < 300000) {
+                alert("Недостаточно средств в бюджете!");
+                return;
+            }
+
+            gameState.budget -= 300000;
+            gameState.happiness = Math.min(100, gameState.happiness + 15);
+            gameState.corruption += 10;
+
+            const eventElement = document.createElement('div');
+            eventElement.className = 'p-2 bg-pink-50 rounded';
+            eventElement.innerHTML = `<i class="fas fa-female text-pink-500 mr-1"></i> Секретарша помогла вам "расслабиться" после тяжёлого дня.`;
+            eventLog.insertBefore(eventElement, eventLog.firstChild);
+
+            if (eventLog.children.length > 6) {
+                eventLog.removeChild(eventLog.lastChild);
+            }
+
+            updateUI();
+        }
+
+        function callEscort() {
+            if (gameState.budget < 1000000) {
+                alert("Недостаточно средств в бюджете!");
+                return;
+            }
+
+            gameState.budget -= 1000000;
+            gameState.happiness = Math.min(100, gameState.happiness + 25);
+            gameState.corruption += 20;
+
+            // Small chance of scandal
+            if (Math.random() < 0.3) {
+                gameState.rating -= 10;
+
+                const scandalElement = document.createElement('div');
+                scandalElement.className = 'p-2 bg-red-100 rounded';
+                scandalElement.innerHTML = `<i class="fas fa-newspaper text-red-500 mr-1"></i> Скандал! Ваш вызов эскорт-услуг попал в прессу. Репутация ухудшилась.`;
+                eventLog.insertBefore(scandalElement, eventLog.firstChild);
+
+                if (eventLog.children.length > 6) {
+                    eventLog.removeChild(eventLog.lastChild);
+                }
+            }
+
+            const eventElement = document.createElement('div');
+            eventElement.className = 'p-2 bg-purple-50 rounded';
+            eventElement.innerHTML = `<i class="fas fa-venus-mars text-purple-600 mr-1"></i> Элитное агентство предоставило вам отличную компанию на вечер.`;
+            eventLog.insertBefore(eventElement, eventLog.firstChild);
+
+            if (eventLog.children.length > 6) {
+                eventLog.removeChild(eventLog.lastChild);
+            }
+
+            updateUI();
+        }
+
+        function closeAllCases() {
+            if (gameState.budget < 2000000) {
+                alert("Недостаточно средств в бюджете!");
+                return;
+            }
+
+            gameState.budget -= 2000000;
+            gameState.corruption += 30;
+
+            // Random positive effects
+            gameState.happiness += Math.floor(Math.random() * 10) + 5;
+            gameState.safety += Math.floor(Math.random() * 15) + 5;
+
+            const eventElement = document.createElement('div');
+            eventElement.className = 'p-2 bg-green-50 rounded';
+            eventElement.innerHTML = `<i class="fas fa-folder text-green-600 mr-1"></i> Все текущие проблемы города были "успешно решены" вашими помощниками.`;
+            eventLog.insertBefore(eventElement, eventLog.firstChild);
+
+            if (eventLog.children.length > 6) {
+                eventLog.removeChild(eventLog.lastChild);
+            }
+
+            updateUI();
+        }
+
+        // End game
+        function endGame() {
+            gameState.gameOver = true;
+
+            if (gameState.rating <= 20) {
+                gameOverTitle.textContent = "Игра окончена!";
+                if (gameState.corruption > 70) {
+                    gameOverMessage.textContent = `Ваш рейтинг упал до ${gameState.rating}%, а уровень коррупции достиг критической отметки. Вас арестовали за злоупотребление властью!`;
+                } else {
+                    gameOverMessage.textContent = `Ваш рейтинг упал до ${gameState.rating}%, и вас отстранили от должности мэра.`;
+                }
+            } else {
+                gameOverTitle.textContent = "Поздравляем!";
+                if (gameState.corruption > 50) {
+                    gameOverMessage.textContent = `Вы успешно управляли городом ${gameState.day} дней с рейтингом ${gameState.rating}%, хотя и с некоторыми "теневыми" методами.`;
+                } else {
+                    gameOverMessage.textContent = `Вы успешно управляли городом в течение ${gameState.day} дней с рейтингом ${gameState.rating}%!`;
+                }
+            }
+
+            gameOverModal.classList.remove('hidden');
+        }
+
+        // Restart game
+        function restartGame() {
+            gameState.day = 1;
+            gameState.rating = 50;
+            gameState.budget = 10000000;
+            gameState.happiness = 65;
+            gameState.ecology = 45;
+            gameState.safety = 80;
+            gameState.population = 125000;
+            gameState.gameOver = false;
+            gameState.corruption = 0;
+
+            eventLog.innerHTML = '<div class="p-2 bg-blue-50 rounded">Вы вступили в должность мэра!</div>';
+
+            gameOverModal.classList.add('hidden');
+            updateUI();
+            generateDecisions();
+        }
+
+        // Event listeners
+        nextDayBtn.addEventListener('click', nextDay);
+        restartBtn.addEventListener('click', restartGame);
+        closeModalBtn.addEventListener('click', () => gameOverModal.classList.add('hidden'));
+
+        // Special action event listeners
+        saunaBtn.addEventListener('click', () => saunaModal.classList.remove('hidden'));
+        secretaryBtn.addEventListener('click', () => secretaryModal.classList.remove('hidden'));
+        escortBtn.addEventListener('click', () => escortModal.classList.remove('hidden'));
+        closeCasesBtn.addEventListener('click', () => closeCasesModal.classList.remove('hidden'));
+
+        // Special action confirm/cancel buttons
+        document.getElementById('confirm-sauna').addEventListener('click', () => {
+            saunaModal.classList.add('hidden');
+            visitSauna();
+        });
+        document.getElementById('cancel-sauna').addEventListener('click', () => saunaModal.classList.add('hidden'));
+
+        document.getElementById('confirm-secretary').addEventListener('click', () => {
+            secretaryModal.classList.add('hidden');
+            callSecretary();
+        });
+        document.getElementById('cancel-secretary').addEventListener('click', () => secretaryModal.classList.add('hidden'));
+
+        document.getElementById('confirm-escort').addEventListener('click', () => {
+            escortModal.classList.add('hidden');
+            callEscort();
+        });
+        document.getElementById('cancel-escort').addEventListener('click', () => escortModal.classList.add('hidden'));
+
+        document.getElementById('confirm-close-cases').addEventListener('click', () => {
+            closeCasesModal.classList.add('hidden');
+            closeAllCases();
+        });
+        document.getElementById('cancel-close-cases').addEventListener('click', () => closeCasesModal.classList.add('hidden'));
+
+        // Initialize game
+        updateUI();
+        generateDecisions();
+    </script>
+</body>
+</html>
