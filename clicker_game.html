@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Кликер-Аркада</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #f0f0f0;
+            margin: 0;
+            padding: 20px;
+        }
+        #game-container {
+            position: relative;
+            width: 600px;
+            height: 400px;
+            margin: 0 auto;
+            background-color: #fff;
+            border: 2px solid #333;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        #target {
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            background-color: #ff5252;
+            border-radius: 50%;
+            cursor: pointer;
+            display: none;
+        }
+        #score {
+            font-size: 24px;
+            margin: 10px;
+        }
+        #timer {
+            font-size: 24px;
+            margin: 10px;
+            color: #333;
+        }
+        #start-btn {
+            padding: 10px 20px;
+            font-size: 18px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        #start-btn:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+    <h1>Кликер-Аркада</h1>
+    <p>Кликайте на красные круги, чтобы заработать очки!</p>
+    <div id="score">Очки: 0</div>
+    <div id="timer">Время: 30</div>
+    <button id="start-btn">Начать игру</button>
+    <div id="game-container">
+        <div id="target"></div>
+    </div>
+
+    <script>
+        const target = document.getElementById('target');
+        const gameContainer = document.getElementById('game-container');
+        const scoreDisplay = document.getElementById('score');
+        const timerDisplay = document.getElementById('timer');
+        const startBtn = document.getElementById('start-btn');
+
+        let score = 0;
+        let timeLeft = 30;
+        let gameActive = false;
+        let timer;
+
+        // Размеры игрового поля
+        const containerWidth = gameContainer.offsetWidth;
+        const containerHeight = gameContainer.offsetHeight;
+
+        // Начать игру
+        startBtn.addEventListener('click', startGame);
+
+        function startGame() {
+            score = 0;
+            timeLeft = 30;
+            gameActive = true;
+            scoreDisplay.textContent = `Очки: ${score}`;
+            timerDisplay.textContent = `Время: ${timeLeft}`;
+            startBtn.disabled = true;
+
+            // Запуск таймера
+            timer = setInterval(() => {
+                timeLeft--;
+                timerDisplay.textContent = `Время: ${timeLeft}`;
+
+                if (timeLeft <= 0) {
+                    endGame();
+                }
+            }, 1000);
+
+            // Показать первую цель
+            showTarget();
+        }
+
+        function showTarget() {
+            if (!gameActive) return;
+
+            // Случайная позиция
+            const maxX = containerWidth - 50;
+            const maxY = containerHeight - 50;
+            const randomX = Math.floor(Math.random() * maxX);
+            const randomY = Math.floor(Math.random() * maxY);
+
+            target.style.left = `${randomX}px`;
+            target.style.top = `${randomY}px`;
+            target.style.display = 'block';
+
+            // Случайный размер (от 30 до 70px)
+            const size = 30 + Math.floor(Math.random() * 40);
+            target.style.width = `${size}px`;
+            target.style.height = `${size}px`;
+
+            // Случайный цвет
+            const colors = ['#ff5252', '#ffeb3b', '#4caf50', '#2196f3'];
+            const randomColor = colors[Math.floor(Math.random() * colors.length)];
+            target.style.backgroundColor = randomColor;
+
+            // Исчезновение через 1-2 секунды
+            setTimeout(() => {
+                if (gameActive && target.style.display === 'block') {
+                    target.style.display = 'none';
+                    showTarget();
+                }
+            }, 1000 + Math.random() * 1000);
+        }
+
+        target.addEventListener('click', () => {
+            if (!gameActive) return;
+
+            score++;
+            scoreDisplay.textContent = `Очки: ${score}`;
+            target.style.display = 'none';
+
+            // Чем меньше цель, тем больше очков
+            const size = parseInt(target.style.width);
+            if (size < 40) score += 2;
+            if (size < 30) score += 3;
+
+            // Новая цель
+            showTarget();
+        });
+
+        function endGame() {
+            gameActive = false;
+            clearInterval(timer);
+            target.style.display = 'none';
+            startBtn.disabled = false;
+            alert(`Игра окончена! Ваш счет: ${score}`);
+        }
+    </script>
+</body>
+</html>
